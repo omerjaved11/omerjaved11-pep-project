@@ -1,12 +1,16 @@
 package Controller;
 
+import java.util.ArrayList;
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Model.Account;
+import Model.Message;
 import Service.AccountService;
+import Service.MessageService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -46,67 +50,83 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
-    private void register(Context context) throws JsonMappingException, JsonProcessingException{
-//As a user, I should be able to create a new Account on the endpoint POST localhost:8080/register. 
-//The body will contain a representation of a JSON Account, but will not contain an account_id.
-    
-    Account account = om.readValue(context.body(), Account.class);
-    AccountService accountService = new AccountService();
-    Account newAccount = accountService.addAccount(account);
-    if(null != newAccount){
-    context.json(newAccount);
-    } else{
-        context.status(400);
-    }
-
+    private void register(Context context) throws JsonMappingException, JsonProcessingException{    
+        Account account = om.readValue(context.body(), Account.class);
+        AccountService accountService = new AccountService();
+        Account newAccount = accountService.addAccount(account);
+        if(null != newAccount){
+        context.json(newAccount);
+        } else{
+            context.status(400);
+        }
     }
     private void login(Context context) throws JsonMappingException, JsonProcessingException{
-// As a user, I should be able to verify my login on the endpoint POST localhost:8080/login.
-//  The request body will contain a JSON representation of an Account, not containing an account_id. 
-// In the future, this action may generate a Session token to allow the user to securely use the site.
-//  We will not worry about this for now.       
-    Account account = om.readValue(context.body(), Account.class);
-    AccountService accountService = new AccountService();
-    Account newAccount = accountService.login(account);
-    if(null != newAccount){
-    context.json(newAccount);
-    } else{
-        context.status(401);
+        Account account = om.readValue(context.body(), Account.class);
+        AccountService accountService = new AccountService();
+        Account loginAccount = accountService.login(account);
+        if(null != loginAccount){
+        context.json(loginAccount);
+        } else{
+            context.status(401);
+        }
     }
 
-    }
-
-     private void getAccountMessages(Context context){
-// As a user, I should be able to submit a GET request on the endpoint GET localhost:8080/accounts/{account_id}/messages.
-
+     private void getAccountMessages(Context context) throws JsonMappingException, JsonProcessingException{
+        MessageService msgService = new MessageService();
+        Message reqMessage = new Message();
+        reqMessage.setPosted_by(Integer.parseInt(context.pathParam("account_id")));
+        ArrayList<Message> respMessageList = msgService.getUserMessages(reqMessage);
+        context.json(respMessageList);
      }
 
-     private void postMessage(Context context){
-// As a user, I should be able to submit a new post on the endpoint POST localhost:8080/messages.
-//  The request body will contain a JSON representation of a message,
-//  which should be persisted to the database, but will not contain a message_id.
+     private void postMessage(Context context) throws JsonMappingException, JsonProcessingException{
+        MessageService msgService = new MessageService();
+        Message reqMessage = om.readValue(context.body(), Message.class);
+        Message respMessage = msgService.postMessage(reqMessage);
+        if(null != respMessage){
+        context.json(respMessage);
+        } else {
+            context.status(400);
+        }
+        
     }
-     private void getAllMessages(Context context){
-// - The response body should contain a JSON representation of a list containing all messages retrieved from the database.
-//  It is expected for the list to simply be empty if there are no messages.
-//   The response status should always be 200, which is the default.
-
+     private void getAllMessages(Context context) throws JsonMappingException, JsonProcessingException{
+        MessageService msgService = new MessageService();
+        ArrayList<Message> messageList = msgService.getAllMessages();
+        context.json(messageList);
 }
-    private void getMessage(Context context){
-    // As a user, I should be able to submit a GET request on the endpoint GET localhost:8080/messages/{message_id}.
-    
+    private void getMessage(Context context) throws JsonMappingException, JsonProcessingException{
+        MessageService msgService = new MessageService();
+        int message_id = Integer.parseInt(context.pathParam("message_id"));
+        Message respMessage = msgService.getMessage(message_id);
+        if(null != respMessage){
+        context.json(respMessage);
+        } else {
+            context.json("");
+        }
      }
 
     private void deleteMessage(Context context){
-// As a User, I should be able to submit a DELETE request on the endpoint DELETE localhost:8080/messages/{message_id}.
-
+         MessageService msgService = new MessageService();
+        Message reqMessage = new Message();
+        reqMessage.setMessage_id(Integer.parseInt(context.pathParam("message_id")));
+        Message respMessage = msgService.deleteMessage(reqMessage);
+        if(null != respMessage){
+        context.json(respMessage);
+        } else {
+            context.json("");
+        }
      }
-    private void changeMessage(Context context){
+    private void changeMessage(Context context) throws JsonMappingException, JsonProcessingException{
 
-// As a user, I should be able to submit a PATCH request on the endpoint PATCH localhost:8080/messages/{message_id}.
-//  The request body should contain a new message_text values to replace the message identified by message_id.
-//   The request body can not be guaranteed to contain any other information.
-
+        MessageService msgService = new MessageService();
+        Message reqMessage = om.readValue(context.body(), Message.class);
+        int message_id = Integer.parseInt(context.pathParam("message_id"));
+        Message respMessage = msgService.changeMessage(reqMessage,message_id);
+        if(null != respMessage){
+        context.json(respMessage);
+        } else {
+            context.status(400);
+        }
      }
-
 }

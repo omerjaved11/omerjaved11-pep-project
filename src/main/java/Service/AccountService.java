@@ -16,7 +16,9 @@ public class AccountService {
     
     public Account addAccount(Account account){
         Account newAccount = null;
-    if(isUsernameValid(account) && isUserExist(account) && isPasswordValid(account)){
+    if(null != account && isUsernameValid(account.getUsername()) && 
+    !isUserExist(account.getUsername()) && isPasswordValid(account.getPassword())){
+
        newAccount = accountDAO.addAccount(account);
     }
     return newAccount;    
@@ -24,20 +26,20 @@ public class AccountService {
     
     public Account login(Account account){
         Account loggedAccount = null;
-        if (isUsernameValid(account) && isPasswordValid(account)) {
+        if (isUsernameValid(account.getUsername()) && isPasswordValid(account.getPassword())) {
             loggedAccount = accountDAO.login(account);
         }
         return loggedAccount;
     }
 
-    private boolean isUsernameValid(Account account){
-        return null != account.getUsername() && !account.getUsername().isEmpty() && !account.getUsername().isBlank();
+    public boolean isUsernameValid(String username){
+        return !username.isEmpty() && !username.isBlank();
     }
-    private boolean isUserExist(Account account){
-        return  null == accountDAO.geAccount(account);
+    public boolean isUserExist(String username){
+        return  null != accountDAO.getAccount(username);
     }
-    private boolean isPasswordValid(Account account){
-        return  null != account.password && account.password.length() >= 4;
+    private boolean isPasswordValid(String password){
+        return password.length() >= 4;
     }
 
 }

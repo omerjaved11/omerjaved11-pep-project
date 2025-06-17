@@ -1,5 +1,4 @@
 package DAO;
-import java.sql.SQLException;
 import Model.Account;
 import Util.ConnectionUtil;
 import java.sql.*;
@@ -28,12 +27,12 @@ public class AccountDAO {
 
         return null;
     }
-    public Account geAccount(Account account){
+    public Account getAccount(String username){
         Connection con = ConnectionUtil.getConnection();
         try {
             String sql = "Select * from account where username = ?;";
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1,account.getUsername());
+            ps.setString(1,username);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
@@ -54,6 +53,24 @@ public class AccountDAO {
             ps.setString(1,account.getUsername());
             ps.setString(2, account.getPassword());
 
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                return new Account(rs.getInt("account_id"), rs.getString("username"), rs.getString("password"));
+            }
+            
+        } catch (SQLException e) {
+           System.out.println(e.getMessage());
+        }
+        return null;
+    }
+
+      public Account getAccountById(int account_id){
+        Connection con = ConnectionUtil.getConnection();
+        try {
+            String sql = "Select * from account where account_id = ?;";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1,account_id);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
